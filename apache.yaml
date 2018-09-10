@@ -1,0 +1,53 @@
+---
+ - hosts: localhost
+   become: yes
+   become_method: sudo
+   tasks:
+  
+   - name: Installing epel release 
+     yum: name=epel-release state=present
+
+   - name: Installng Apache httpd
+     yum: name=httpd state=present
+  
+   - name: Updating new Conf file
+     template: src=/home/khaleel/ansible/httpd.conf.j2 dest=/etc/httpd/conf/httpd.conf  
+   
+   - name: Adding directory sites-available.
+     file: 
+      path: /etc/httpd/sites-available state=directory
+      owner: root
+      group: root
+      mode: 0644
+     file:
+      path: /etc/httpd/sites-available/website1.conf state=file
+      owner: root
+      group: root
+      mode: 0644
+      template: src:/home/khaleel/ansible/website1.com.conf.j2 dest:/etc/httpd/sites-available/website1.com.conf
+     
+     file:
+      path: /etc/httpd/sites-available/website2.conf state=file
+      owner: root
+      group: root
+      mode: 0644
+      template: src:/home/khaleel/ansible/website2.com.conf.j2 dest:/etc/httpd/sites-available/website2.com.conf
+
+   - name: Adding directory sites-enabled.
+     file:
+      path: /etc/httpd/sites-enabled state=directory
+      owner: root
+      group: root
+      mode: 0644
+      src: /etc/httpd/sites-available/website1.com.conf 
+      dest: /etc/httpd/sites-enabled/
+      state: link
+      src: /etc/httpd/sites-available/website2.com.conf
+      dest: /etc/httpd/sites-enabled/
+      state: link
+
+      
+   - name: Start Httpd service
+     service:
+      name: httpd
+      state: started
